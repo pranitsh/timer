@@ -9,7 +9,9 @@
 
 <body>
     <h1>Timers</h1>
-    <button id='create' onclick="createTimer()">Create 10 min Timer</button>
+    <button id='create'
+        onclick="createTimer({end: new Date(Date.now() + 10 * 60 * 1000), start: new Date(Date.now())})">
+        Create 10 min Timer</button>
     <div id="timerDiv"></div>
     <script>
         // https://stackoverflow.com/a/23395136
@@ -21,54 +23,42 @@
     </script>
     <script>
         const timerDiv = document.getElementById('timerDiv');
-        function createTimer(end = new Date(Date.now() + 10 * 60 * 1000), start = new Date(Date.now())) {
+        function createTimer(item) {
             const elementDiv = document.createElement('div');
-            const timeLeft = document.createElement('textarea');
-            timeLeft.value = new Date(end - Date.now()).toISOString().split(/[T.]/)[1];
+            const timeLeft = document.createElement('h1');
+            timeLeft.innerHTML = new Date(item.end - Date.now()).toISOString().split(/[T.]/)[1];
             const endTime = document.createElement('textarea');
-            endTime.value = end.toLocaleString('en-GB');
+            endTime.value = item.end.toLocaleString();
             const startTime = document.createElement('p');
-            startTime.innerHTML = 'Started at ' + start.toLocaleString('en-GB');
+            startTime.innerHTML = 'Started at ' + item.start.toLocaleString();
             let number = timerDiv.childElementCount;
             setInterval((timeLeft, startTime, endTime) => {
                 if (document.activeElement !== timeLeft && document.activeElement !== startTime && document.activeElement !== endTime) {
-                    timeLeft.value = new Date(end - Date.now()).toISOString().split(/[T.]/)[1];
+                    timeLeft.innerHTML = new Date(item.end - Date.now()).toISOString().split(/[T.]/)[1];
                 }
-                console.log(end - Date.now());
-                if (end - Date.now() < 0) {
+                if (item.end - Date.now() < 0) {
                     document.title = '🔴🔴🔴🔴🔴';
                     beep();
                 } else if (number == 0) {
-                    document.title = new Date(end - Date.now()).toISOString().split(/[T\.]/)[1];
+                    document.title = new Date(item.end - Date.now()).toISOString().split(/[T\.]/)[1];
                 }
 
             }, 1000, timeLeft, startTime, endTime);
             endTime.onchange = (event) => {
-                let parts = event.target.value.split(/[/, :]/);
-                end = new Date(
-                    parseInt(parts[2]) || end.getFullYear(),
-                    parseInt(parts[1]) - 1 || end.getDate(),
-                    parseInt(parts[0]) || end.getMonth(),
-                    parseInt(parts[4]) || end.getHours(),
-                    parseInt(parts[5]) || end.getMinutes(),
-                    parseInt(parts[6]) || end.getSeconds());
+                console.log(event.target.value);
+                item.end = new Date(event.target.value);
+                endTime.value = item.end.toLocaleString();
             };
             const name = document.createElement('textarea');
             name.value = `Timer ${timerDiv.childElementCount + 1}`;
-            elementDiv.append(name, timeLeft, endTime, startTime);
+            elementDiv.append(timeLeft, name, endTime, startTime);
             timerDiv.append(elementDiv);
         }
-
     </script>
     <style>
         button {
             font-size: larger;
             margin: 30px;
-        }
-
-        p {
-            margin: 2px;
-            font-size: large;
         }
 
         textarea {
