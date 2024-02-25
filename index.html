@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!--Copyright (c) Pranit Shah 2023 - All rights reserved.-->
 <html lang="en">
 
 <head>
@@ -16,8 +17,8 @@
     <button id='create' onclick="addData()">
         Create 10 min Timer</button>
     <div id="timerDiv"></div>
-    <button id='create' onclick="navigator.clipboard.writeText(JSON.stringify(timerArray));">
-        Download JSON</button>
+    <button id='create' onclick="navigator.clipboard.writeText(JSON.stringify(timerArray, null, '\n\t'));">
+        Copy JSON</button>
     <script>
         // Modified from https://stackoverflow.com/a/23395136
         // Relicensed under https://creativecommons.org/licenses/by-sa/4.0/
@@ -29,6 +30,7 @@
     </script>
     <script>
         const timerDiv = document.getElementById('timerDiv');
+        let timerArray = [];
 
         function createTimer(item) {
             const elementDiv = document.createElement('div');
@@ -41,15 +43,20 @@
             startTime.cols = endTime.cols = 25;
             const name = document.createElement('textarea');
             name.value = item.name;
-            setTimeout(() => setInterval((timeLeft, startTime, endTime) => {
-                timeLeft.innerHTML = new Date(item.end - Date.now()).toISOString().split(/[T.]/)[1];
-                if ((item.end - Date.now()) < 0) {
-                    document.title = '🔴🔴🔴🔴🔴';
-                    beep();
-                } else if (item.number == 0) {
-                    document.title = new Date(item.end - Date.now()).toISOString().split(/[T\.]/)[1];
-                }
-            }, 1000, timeLeft, startTime, endTime), Math.ceil(Date.now() / 1000) * 1000 - Date.now());
+            const deleteButton = document.createElement('button');
+            deleteButton.innerHTML = "Delete";
+            let intervalId = null;
+            setTimeout(() => {
+                intervalId = setInterval((timeLeft, startTime, endTime) => {
+                    timeLeft.innerHTML = new Date(item.end - Date.now()).toISOString().split(/[T.]/)[1];
+                    if ((item.end - Date.now()) < 0) {
+                        document.title = '🔴🔴🔴🔴🔴';
+                        beep();
+                    } else if (item.number == 0) {
+                        document.title = new Date(item.end - Date.now()).toISOString().split(/[T\.]/)[1];
+                    }
+                }, 1000, timeLeft, startTime, endTime);
+            }, Math.ceil(Date.now() / 1000) * 1000 - Date.now());
             endTime.onchange = (event) => {
                 item.end = !isNaN(new Date(event.target.value)) ? new Date(event.target.value) : item.end;
                 endTime.value = item.end.toLocaleString();
@@ -58,35 +65,57 @@
                 item.start = !isNaN(new Date(event.target.value)) ? new Date(event.target.value) : item.start;
                 startTime.value = item.start.toLocaleString();
             };
+            deleteButton.onclick = (event) => {
+                clearInterval(intervalId);
+                const index = timerArray.indexOf(item);
+                if (index !== -1) {
+                    timerArray.splice(index, 1);
+                }
+                const toRemove = document.getElementById(`timer${item.number}`);
+                toRemove.remove();
+            }
             name.onchange = (event) => {
                 item.name = event.target.value;
                 name.value = item.name;
             };
-            elementDiv.append(timeLeft, name, endTime, startTime);
-            timerDiv.append(elementDiv);
+            elementDiv.id = `timer${item.number}`;
+            elementDiv.append(timeLeft, name, endTime, startTime, deleteButton);
+            return elementDiv;
         }
-
-        let timerArray = [];
 
         function addData() {
-            let newData = { end: new Date(Date.now() + 10 * 60 * 1000), start: new Date(Date.now()), number: timerArray.length, name: `Timer ${timerArray.length + 1}` };
-            timerArray.push(newData);
-            createTimer(newData);
-            console.log(timerArray);
+            timerArray.push({ end: new Date(Date.now() + 600000), start: new Date(Date.now()), number: timerArray.length, name: `10 min timer` });
+            timerDiv.append(createTimer(timerArray[timerArray.length - 1]));
         }
-
-
     </script>
     <style>
         button {
             font-size: larger;
-            margin: 30px;
+            border: none;
+            padding: 0.5em;
+            border-radius: 5px;
+            height: auto;
+            margin: 0.5em;
+            background-color: #59ff90;
+            transition: background-color 0.3s;
         }
 
         textarea {
             margin: 10px;
             font-size: x-large;
             border: none;
+            padding: 0.5em;
+            border-radius: 5px;
+            height: auto;
+        }
+
+        body {
+            padding: 1em;
+            font-family: Arial, sans-serif;
+        }
+
+        button:hover {
+            background-color: #4fd98d;
         }
     </style>
 </body>
